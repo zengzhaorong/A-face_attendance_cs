@@ -533,7 +533,7 @@ void *opencv_face_recogn_thread(void *arg)
             rect_location_t locat_array[MAX_FACE_NUM];
             face_recogn_info_t recogn_info;
             int face_num;
-            face_get_face_info(locat_array, MAX_FACE_NUM, &face_num, &recogn_info);
+            face_get_face_info(locat_array, MAX_FACE_NUM, &face_num, NULL);
 
             recogn_info.user_id = face_id;
             recogn_info.score = confidence;

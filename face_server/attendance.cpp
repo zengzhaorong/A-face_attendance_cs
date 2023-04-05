@@ -76,7 +76,14 @@ attend_state_e attend_set_user(int id, char *name, unsigned int time)
             }
             else
             {
-                strcpy(attend_info.state, TEXT_ATTEND_OK);
+                if(!strcmp(attend_info.state, TEXT_ATTEND_IN_LATE))
+                {
+                    //strcpy(attend_info.state, TEXT_ATTEND_IN_LATE);
+                }
+                else
+                {
+                    strcpy(attend_info.state, TEXT_ATTEND_OK);
+                }
             }
         }
         printf("user [id=%d]: attend out %s.\n", id, attend_info.state);

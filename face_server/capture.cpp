@@ -221,7 +221,6 @@ int v4l2cap_update_newframe(unsigned char *data, int len)
 /* 返回值：-1 出错，0-图像没有更新还是上一帧，>0 图像的编号（递增） */
 int capture_get_newframe(unsigned char *data, int size, int *len)
 {
-    struct v4l2cap_info *capture = &capture_info;
     int tmpLen;
 
     if(newframe_len <= 0)

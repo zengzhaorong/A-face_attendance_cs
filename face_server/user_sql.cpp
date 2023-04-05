@@ -349,6 +349,24 @@ int db_attend_read(int id, attend_info_t *attend_info)
     return ret;
 }
 
+int db_attend_clear_data(void)
+{
+    QString sql_cmd;
+
+    pthread_mutex_lock(&sql_mutex);
+
+    sql_cmd = QString("delete from %1").arg(TABLE_ATTENDANCE);
+    qDebug() << sql_cmd;
+    if(sqlquery->exec(sql_cmd) == false)
+    {
+        printf("%s: failed!\n", __FUNCTION__);
+        pthread_mutex_unlock(&sql_mutex);
+        return 0;
+    }
+
+    pthread_mutex_unlock(&sql_mutex);
+}
+
 int sql_create_user_tbl(void)
 {
     QString sql_cmd;

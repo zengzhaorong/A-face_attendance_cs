@@ -142,9 +142,9 @@
     <property name="geometry">
      <rect>
       <x>670</x>
-      <y>350</y>
+      <y>340</y>
       <width>101</width>
-      <height>41</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
@@ -183,9 +183,9 @@
     <property name="geometry">
      <rect>
       <x>680</x>
-      <y>400</y>
+      <y>410</y>
       <width>81</width>
-      <height>31</height>
+      <height>21</height>
      </rect>
     </property>
     <property name="text">
@@ -262,6 +262,19 @@
     </property>
     <property name="text">
      <string>设置考勤时间</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="clearAtdTblBtn">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>380</y>
+      <width>89</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>清除考勤表</string>
     </property>
    </widget>
   </widget>

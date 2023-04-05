@@ -57,6 +57,8 @@ private slots:
 
     void on_setAtdTimeBtn_clicked();
 
+    void on_clearAtdTblBtn_clicked();
+
 private:
     Ui::MainWindow *ui;
 

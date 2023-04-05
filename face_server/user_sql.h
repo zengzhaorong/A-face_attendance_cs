@@ -57,6 +57,7 @@ int db_user_traverse(int *cursor, user_info_t *user_info);
 
 int db_attend_write(attend_info_t *attend_info);
 int db_attend_read(int id, attend_info_t *attend_info);
+int db_attend_clear_data(void);
 
 int sql_create_user_tbl(void);
 int sql_create_attend_tbl(void);

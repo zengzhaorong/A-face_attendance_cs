@@ -326,6 +326,13 @@ void MainWindow::on_setAtdTimeBtn_clicked()
 
 }
 
+void MainWindow::on_clearAtdTblBtn_clicked()
+{
+    db_attend_clear_data();
+    sqlmodel->submit();
+    sqlmodel->select();
+}
+
 /* main window initial - 主界面初始化 */
 int mainwindow_init(void)
 {

@@ -11,6 +11,7 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+#define STR_NOT_CONN_SERVER  "未连接服务器"
 #define STR_FACE_RECOGN_OK   "人脸识别成功"
 
 #define BACKGROUND_IMAGE    "../face_client/background.jpg"

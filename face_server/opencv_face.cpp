@@ -543,8 +543,6 @@ void *opencv_face_recogn_thread(void *arg)
 
             // 添加识别记录
             user_info_t user;
-            attend_info_t attend_info;
-            memset(&attend_info, 0, sizeof(attend_info_t));
             db_user_read(face_id, &user);
             QDateTime time = QDateTime::currentDateTime();
             attend_set_user(user.id, user.name, time.toTime_t());

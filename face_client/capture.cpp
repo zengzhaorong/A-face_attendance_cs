@@ -15,6 +15,7 @@ int newframe_len;
 int frame_index = 0;
 int g_send_video_flag = 0;
 pthread_mutex_t	newframe_mut;
+static char *capture_video_dev = NULL;
 
 struct v4l2cap_info capture_info = {0};
 extern client_info_t g_client_info;
@@ -31,14 +32,14 @@ int capture_init(struct v4l2cap_info *capture)
 
     memset(capture, 0, sizeof(struct v4l2cap_info));
 
-    capture->fd = open(DEFAULT_CAPTURE_DEV, O_RDWR);
+    capture->fd = open(capture_video_dev, O_RDWR);
     if(capture->fd < 0)
     {
-        printf("ERROR: open video dev [%s] failed !\n", DEFAULT_CAPTURE_DEV);
+        printf("ERROR: open video dev [%s] failed !\n", capture_video_dev);
         ret = -1;
         goto ERR_1;
     }
-    printf("open video dev [%s] successfully .\n", DEFAULT_CAPTURE_DEV);
+    printf("open video dev [%s] successfully .\n", capture_video_dev);
 
     /* get supported format */
     memset(&fmtdesc, 0, sizeof(struct v4l2_fmtdesc));
@@ -320,10 +321,15 @@ void *capture_thread(void *arg)
     return NULL;
 }
 
-int start_capture_task(void)
+int start_capture_task(char *dev)
 {
     pthread_t tid;
     int ret;
+
+    if(dev)
+        capture_video_dev = dev;
+    else
+        capture_video_dev = DEFAULT_CAPTURE_DEV;
 
     ret = pthread_create(&tid, NULL, capture_thread, NULL);
     if(ret != 0)

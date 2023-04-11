@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     /* set window title - 设置窗口标题 */
     setWindowTitle(DEFAULT_WINDOW_TITLE);
 
+    ui->videoTxtLab->setStyleSheet("color:red");
     ui->videoTxtLab->setHidden(true);
 
     /* 加载并显示背景图 */
@@ -41,6 +42,7 @@ void MainWindow::window_display(void)
     static rect_location_t location[MAX_FACE_NUM];
     static int face_rect_delay = FACE_DETECT_DELAY_TIME;
     static int old_frame_index = 0;
+    static int disconn_flag = 0;
     static unsigned int counter = 0;
     static int face_num = 0;
     QImage videoQImage;
@@ -86,7 +88,22 @@ void MainWindow::window_display(void)
 
     switch (g_work_state)
     {
+        case WORK_STA_DISCONNECT:
+            if(disconn_flag == 0)
+            {
+                ui->videoTxtLab->setText(STR_NOT_CONN_SERVER);
+                ui->videoTxtLab->setHidden(false);
+                disconn_flag = 1;
+            }
+
+            break;
+
         case WORK_STA_NORMAL:
+            if(disconn_flag)
+            {
+                ui->videoTxtLab->setHidden(true);
+                disconn_flag = 0;
+            }
             break;
 
         case WORK_STA_RECOGN_OK:

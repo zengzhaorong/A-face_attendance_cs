@@ -33,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->videoTxtLab->setHidden(true);
     ui->attendListBtn->setCheckable(true);
     ui->switchCamBtn->setCheckable(true);
+    ui->videoTxtLab->setStyleSheet("color:red");
     video_display_flag = 0;
 
     QDate date = QDate::currentDate();
@@ -247,8 +248,12 @@ void MainWindow::on_addUserBtn_clicked()
 
     g_adding_index = 0;
     g_work_state = WORK_STA_ADD_USER;
-    video_display_flag = 1;
 
+    if(video_display_flag)
+    {
+        proto_0x20_switchcamera(0);
+    }
+    video_display_flag = 1;
     start_capture_task();
 }
 

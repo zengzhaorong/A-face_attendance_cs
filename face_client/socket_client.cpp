@@ -12,6 +12,7 @@
 #include "ringbuffer.h"
 #include "config.h"
 
+char *g_server_ip = NULL;
 client_info_t g_client_info = {0};
 static unsigned char tmp_databuf[PROTO_PACK_MAX_LEN];
 static unsigned char tmp_protobuf[PROTO_PACK_MAX_LEN];
@@ -529,7 +530,7 @@ void *client_task_thread(void *arg)
     time_t tmp_time;
     int ret;
 
-    ret = client_init(client, (char *)DEFAULT_SERVER_IP, DEFAULT_SERVER_PORT);
+    ret = client_init(client, g_server_ip, DEFAULT_SERVER_PORT);
     if(ret != 0)
     {
         printf("%s client init failed!\n", __FUNCTION__);
@@ -545,6 +546,7 @@ void *client_task_thread(void *arg)
                 if(ret == 0)
                 {
                     client->tcp_state = TCP_STATE_CONNECTED;
+                    g_work_state = WORK_STA_NORMAL;
                     printf("********** tcp connect server ok **********\n");
                 }
                 break;
@@ -589,10 +591,15 @@ void *client_task_thread(void *arg)
     return NULL;
 }
 
-int start_socket_client_task(void)
+int start_socket_client_task(char *svr_ip)
 {
     pthread_t tid;
     int ret;
+
+    if(svr_ip)
+        g_server_ip = svr_ip;
+    else
+        g_server_ip = DEFAULT_SERVER_IP;
 
     ret = pthread_create(&tid, NULL, client_task_thread, NULL);
     if(ret != 0)

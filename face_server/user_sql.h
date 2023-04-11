@@ -1,5 +1,5 @@
-#ifndef USER_DB_H
-#define USER_DB_H
+#ifndef USER_SQL_H
+#define USER_SQL_H
 
 #include <iostream>
 #include <fstream>
@@ -64,4 +64,4 @@ int sql_create_attend_tbl(void);
 
 int user_sql_init(QSqlDatabase &sql);
 
-#endif // USER_DB_H
+#endif // USER_SQL_H

@@ -23,7 +23,7 @@ struct v4l2cap_info
 };
 
 
-int start_capture_task(void);
+int start_capture_task(char *dev);
 
 /* 返回值：-1 出错，0-图像没有更新还是上一帧，>0 图像的编号（递增） */
 int capture_get_newframe(unsigned char *data, int size, int *len);

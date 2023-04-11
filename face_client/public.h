@@ -6,6 +6,7 @@
 #define MAX_FACE_NUM    10
 
 typedef enum{
+    WORK_STA_DISCONNECT,
     WORK_STA_NORMAL,
     WORK_STA_ADD_USER,
     WORK_STA_ADD_USER_OK,

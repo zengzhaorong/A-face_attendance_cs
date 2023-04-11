@@ -56,6 +56,6 @@ typedef struct {
 
 int proto_0x21_sendframe(client_info_t *client, unsigned char format, void *frame, int len);
 
-int start_socket_client_task(void);
+int start_socket_client_task(char *svr_ip);
 
 #endif // SOCKET_CLIENT_H

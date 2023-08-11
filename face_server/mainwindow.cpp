@@ -218,8 +218,8 @@ void MainWindow::on_addUserBtn_clicked()
     QString str_name;
     QString str_user;
 
-    str_id = ui->userIdEdit->text();
-    str_name = ui->userNameEdit->text();
+    str_id = ui->userIdEdit->text();	// 获取编号ID输入框的内容
+    str_name = ui->userNameEdit->text();	// 获取用户名输入框的内容
     if(str_id.length()<=0 || str_name.length()<=0)
     {
         qDebug() << "user id or name is null!";
@@ -227,14 +227,14 @@ void MainWindow::on_addUserBtn_clicked()
     }
 
     // toLocal8Bit(): Unicode编码
-    user.id = atoi(str_id.toLocal8Bit().data());
+    user.id = atoi(str_id.toLocal8Bit().data());	// 格式转换：将输入的编号ID转换为整型
     if(user.id <= 0)
     {
         qDebug() << "user id is illegal!";
         return ;
     }
 
-    strcpy(user.name, str_name.toLocal8Bit().data());
+    strcpy(user.name, str_name.toLocal8Bit().data());	// 格式转换：将输入的用户名转换为字符串
     sprintf(user.facepath, "%s/%d_%s", FACE_LIB_PATH, user.id, user.name);
 
     printf("add user: %s\n", user.facepath);

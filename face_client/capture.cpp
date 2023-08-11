@@ -32,7 +32,7 @@ int capture_init(struct v4l2cap_info *capture)
 
     memset(capture, 0, sizeof(struct v4l2cap_info));
 
-    capture->fd = open(capture_video_dev, O_RDWR);
+    capture->fd = open(capture_video_dev, O_RDWR);	// 打开摄像头
     if(capture->fd < 0)
     {
         printf("ERROR: open video dev [%s] failed !\n", capture_video_dev);
@@ -109,6 +109,7 @@ int capture_init(struct v4l2cap_info *capture)
         goto ERR_4;
     }
 
+	// 申请缓存
     memset(&reqbuf_param, 0, sizeof(struct v4l2_requestbuffers));
     reqbuf_param.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     reqbuf_param.memory = V4L2_MEMORY_MMAP;
@@ -120,7 +121,7 @@ int capture_init(struct v4l2cap_info *capture)
         goto ERR_6;
     }
 
-    /* set video queue buffer */
+    /* 设置视频缓存队列 */
     for(i=0; i<QUE_BUF_MAX_NUM; i++)
     {
         memset(&buffer[i], 0, sizeof(struct v4l2_buffer));

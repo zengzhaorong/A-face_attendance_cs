@@ -28,6 +28,7 @@ int client_init(client_info_t *client, char *srv_ip, int srv_port)
 
     client->tcp_state = TCP_STATE_DISCONNECT;
 
+	// 创建一个socket套接字,TCP类型
     client->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if(client->fd < 0)
     {
@@ -36,6 +37,7 @@ int client_init(client_info_t *client, char *srv_ip, int srv_port)
 
     pthread_mutex_init(&client->send_mutex, NULL);
 
+	// 设置参数属性
     flags = fcntl(client->fd, F_GETFL, 0);
     fcntl(client->fd, F_SETFL, flags | O_NONBLOCK);
 
@@ -70,6 +72,7 @@ int client_send_data(client_info_t *client, unsigned char *data, int len)
     // lock
     pthread_mutex_lock(&client->send_mutex);
     do{
+		// 发送数据
         ret = send(client->fd, data +total, len -total, 0);
         if(ret < 0)
         {
@@ -530,6 +533,7 @@ void *client_task_thread(void *arg)
     time_t tmp_time;
     int ret;
 
+	// 初始化客户端，创建socket，设置相关属性
     ret = client_init(client, g_server_ip, DEFAULT_SERVER_PORT);
     if(ret != 0)
     {
@@ -542,6 +546,7 @@ void *client_task_thread(void *arg)
         switch (client->tcp_state)
         {
             case TCP_STATE_DISCONNECT:
+				// 连接服务器
                 ret = connect(client->fd, (struct sockaddr *)&client->svr_addr, sizeof(struct sockaddr_in));
                 if(ret == 0)
                 {

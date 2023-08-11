@@ -35,6 +35,7 @@ int server_init(server_info_t *server, int port)
         return -2;
     }
 
+	// 服务器监听客户端的连接
     ret = listen(server->fd, 10);
     if(ret != 0)
     {
@@ -512,6 +513,7 @@ void *server_listen_thread(void *arg)
     {
         memset(&client_addr, 0, sizeof(struct sockaddr_in));
 
+		// 接受客户端发起的连接
         server->client.fd = accept(server->fd, (struct sockaddr *)&server->client.sockaddr, (socklen_t *)&len);
         if(server->client.fd < 0)
         {

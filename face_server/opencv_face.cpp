@@ -110,6 +110,7 @@ int opencv_face_detect::face_detect_init(void)
     if(this->frame_buf == NULL)
         return -1;
 
+	// 加载人脸检测模型
     bret = this->face_cascade.load(FRONTAL_FACE_HAAR_XML);
     if(bret == false)
     {
@@ -186,8 +187,10 @@ int face_database_train(void)
         goto ERR_TRAIN;
     }
 
+	// 人脸库模型训练
     face_recogn_unit.mod_LBPH->train(images, labels);
 
+	// 设置识别阈值
     face_recogn_unit.mod_LBPH->setThreshold(FACE_RECOGN_THRES);
 
     printf("face_database_retrain successfully.\n");
@@ -218,7 +221,8 @@ int opencv_face_recogn::face_recogn_init(void)
         return -1;
     }
 
-#if defined(OPENCV_VER_3_X_X)
+	// 创建LBPH人脸识别器
+#if defined(OPENCV_VER_3_X_X)	// opencv 3版本接口
     this->mod_LBPH = createLBPHFaceRecognizer();
 #else
     this->mod_LBPH = LBPHFaceRecognizer::create();
@@ -261,6 +265,7 @@ int opencv_face_recogn::face_recogn(Mat &face_mat, int *face_id, uint8_t *confid
     if(recogn_mat.empty())
         printf("recogn_mat is empty!!!\n");
 
+	// 人脸识别
     face_recogn_unit.mod_LBPH->predict(recogn_mat , predict, confidence);
 
     if(predict < 0)

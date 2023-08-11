@@ -3,10 +3,10 @@
 
 
 // [WINDOW]
-#define DEFAULT_WINDOW_TITLE		"人脸识别门禁系统"
+#define DEFAULT_WINDOW_TITLE		"人脸识别考勤系统"
 
 // [CAPTURE]
-#define DEFAULT_CAPTURE_DEV 		"/dev/video2"
+#define DEFAULT_CAPTURE_DEV 		"/dev/video0"
 #define DEFAULT_CAPTURE_WIDTH		640
 #define DEFAULT_CAPTURE_HEIGH		480
 #define FRAME_BUF_SIZE		(DEFAULT_CAPTURE_WIDTH *DEFAULT_CAPTURE_HEIGH *3)

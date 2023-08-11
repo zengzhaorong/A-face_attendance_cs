@@ -3,7 +3,7 @@
 
 
 // [WINDOW]
-#define DEFAULT_WINDOW_TITLE		"百度AI人脸识别系统"
+#define DEFAULT_WINDOW_TITLE		"人脸识别考勤系统"
 
 // [CAPTURE]
 #define DEFAULT_CAPTURE_DEV 		"/dev/video0"

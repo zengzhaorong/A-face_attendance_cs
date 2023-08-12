@@ -241,8 +241,8 @@ int db_user_traverse(int *cursor, user_info_t *user_info)
 int db_attend_update(attend_info_t *attend_info)
 {
     QString sql_cmd;
-    char atdin_time[32] = "NULL";
-    char atdout_time[32] = "NULL";
+    char atdin_time[36] = "NULL";
+    char atdout_time[36] = "NULL";
 
     if(strlen(attend_info->in_time) > 0)
     {
@@ -276,8 +276,8 @@ int db_attend_write(attend_info_t *attend_info)
 {
     attend_info_t attend_r;
     QString sql_cmd;
-    char atdin_time[32] = "NULL";
-    char atdout_time[32] = "NULL";
+    char atdin_time[36] = "NULL";
+    char atdout_time[36] = "NULL";
 
     printf("write attend user id: %d\n", attend_info->user_id);
 
@@ -365,6 +365,8 @@ int db_attend_clear_data(void)
     }
 
     pthread_mutex_unlock(&sql_mutex);
+
+    return 0;
 }
 
 int sql_create_user_tbl(void)

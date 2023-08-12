@@ -30,6 +30,7 @@ HEADERS += \
     attendance.h \
     capture.h \
     config.h \
+    lib_proto.h \
     mainwindow.h \
     opencv_face.h \
     public.h \
@@ -48,6 +49,7 @@ LIBS += -L$${LIB_OPENCV_PATH}/lib/ -lopencv_core -lopencv_objdetect \
         -lopencv_highgui -lopencv_imgproc \
         -lopencv_imgcodecs -lopencv_ml -lopencv_face
 
+LIBS += -L$$PWD/./ -l_proto
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

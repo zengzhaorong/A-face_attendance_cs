@@ -10,11 +10,11 @@
 #include "capture.h"
 
 unsigned char *newframe_buf;
-int newframe_len;
+int newframe_len = 0;
 int frame_index = 0;
 pthread_mutex_t	newframe_mut;
 
-struct v4l2cap_info capture_info = {0};
+struct v4l2cap_info capture_info;
 
 
 int capture_init(struct v4l2cap_info *capture)
@@ -23,7 +23,7 @@ int capture_init(struct v4l2cap_info *capture)
     struct v4l2_format format;
     struct v4l2_requestbuffers reqbuf_param;
     struct v4l2_buffer buffer[QUE_BUF_MAX_NUM];
-    int v4l2_fmt[2] = {V4L2_PIX_FMT_MJPEG, V4L2_PIX_FMT_JPEG};
+    unsigned int v4l2_fmt[2] = {V4L2_PIX_FMT_MJPEG, V4L2_PIX_FMT_JPEG};
     int i, ret;
 
     memset(capture, 0, sizeof(struct v4l2cap_info));
@@ -51,7 +51,7 @@ int capture_init(struct v4l2cap_info *capture)
     }while(ret == 0);
 
     /* try the capture format */
-    for(i=0; i<sizeof(v4l2_fmt)/sizeof(int); i++)
+    for(i=0; i<(int)(sizeof(v4l2_fmt)/sizeof(int)); i++)
     {
         /* configure video format */
         memset(&format, 0, sizeof(struct v4l2_format));
@@ -98,7 +98,7 @@ int capture_init(struct v4l2cap_info *capture)
             break;
         }
     }
-    if(i >= sizeof(v4l2_fmt)/sizeof(int))
+    if(i >= (int)(sizeof(v4l2_fmt)/sizeof(int)))
     {
         printf("ERROR: Not support capture foramt !!!\n");
         ret = -4;

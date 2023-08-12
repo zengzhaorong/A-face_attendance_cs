@@ -9,7 +9,7 @@
 #include "config.h"
 
 static MainWindow *mainwindow;
-user_info_t g_adding_user = {0};
+user_info_t g_adding_user;
 unsigned char g_adding_index = 0;
 int video_pause_flag = 0;
 extern unsigned int g_atdin_time;

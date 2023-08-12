@@ -26,6 +26,7 @@ SOURCES += \
 HEADERS += \
     capture.h \
     config.h \
+    lib_proto.h \
     mainwindow.h \
     public.h \
     ringbuffer.h \
@@ -33,6 +34,8 @@ HEADERS += \
 
 FORMS += \
     mainwindow.ui
+
+LIBS += -L$$PWD/./ -l_proto
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

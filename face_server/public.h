@@ -9,6 +9,12 @@
 using namespace std;
 using namespace cv;
 
+#define UNUSED_1(a)         {(void)a;}
+#define UNUSED_2(a,b)       {(void)a;(void)b;}
+#define UNUSED_3(a,b,c)     {(void)a;(void)b;(void)c;}
+#define UNUSED_4(a,b,c,d)   {(void)a;(void)b;(void)c;(void)d;}
+#define UNUSED_5(a,b,c,d,e) {(void)a;(void)b;(void)c;(void)d;(void)e;}
+
 typedef enum{
     WORK_STA_NORMAL,
     WORK_STA_ADD_USER,

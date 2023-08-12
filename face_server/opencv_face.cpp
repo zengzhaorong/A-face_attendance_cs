@@ -103,7 +103,6 @@ opencv_face_detect::opencv_face_detect(void)
 int opencv_face_detect::face_detect_init(void)
 {
     bool bret;
-    int ret;
 
     this->frame_size = FRAME_BUF_SIZE;
     this->frame_buf = (unsigned char *)malloc(this->frame_size);
@@ -390,6 +389,7 @@ void *opencv_face_detect_thread(void *arg)
     int frame_len = 0;
     int ret;
 
+    UNUSED_1(arg);
     printf("%s enter ++\n", __FUNCTION__);
 
     ret = detect_unit->face_detect_init();
@@ -501,6 +501,7 @@ void *opencv_face_recogn_thread(void *arg)
     uint8_t confidence;
     int ret;
 
+    UNUSED_1(arg);
     printf("%s enter ++\n", __FUNCTION__);
 
     /* do not return if failed, because it will init again after add face. */

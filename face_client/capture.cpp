@@ -11,13 +11,13 @@
 #include "capture.h"
 
 unsigned char *newframe_buf;
-int newframe_len;
+int newframe_len = 0;
 int frame_index = 0;
 int g_send_video_flag = 0;
 pthread_mutex_t	newframe_mut;
 static char *capture_video_dev = NULL;
 
-struct v4l2cap_info capture_info = {0};
+struct v4l2cap_info capture_info;
 extern client_info_t g_client_info;
 
 
@@ -27,7 +27,7 @@ int capture_init(struct v4l2cap_info *capture)
     struct v4l2_format format;
     struct v4l2_requestbuffers reqbuf_param;
     struct v4l2_buffer buffer[QUE_BUF_MAX_NUM];
-    int v4l2_fmt[2] = {V4L2_PIX_FMT_MJPEG, V4L2_PIX_FMT_JPEG};
+    unsigned int v4l2_fmt[2] = {V4L2_PIX_FMT_MJPEG, V4L2_PIX_FMT_JPEG};
     int i, ret;
 
     memset(capture, 0, sizeof(struct v4l2cap_info));
@@ -55,7 +55,7 @@ int capture_init(struct v4l2cap_info *capture)
     }while(ret == 0);
 
     /* try the capture format */
-    for(i=0; i<sizeof(v4l2_fmt)/sizeof(int); i++)
+    for(i=0; i<(int)(sizeof(v4l2_fmt)/sizeof(int)); i++)
     {
         /* configure video format */
         memset(&format, 0, sizeof(struct v4l2_format));
@@ -102,7 +102,7 @@ int capture_init(struct v4l2cap_info *capture)
             break;
         }
     }
-    if(i >= sizeof(v4l2_fmt)/sizeof(int))
+    if(i >= (int)(sizeof(v4l2_fmt)/sizeof(int)))
     {
         printf("ERROR: Not support capture foramt !!!\n");
         ret = -4;
@@ -226,7 +226,6 @@ int v4l2cap_update_newframe(unsigned char *data, int len)
 /* 返回值：-1 出错，0-图像没有更新还是上一帧，>0 图像的编号（递增） */
 int capture_get_newframe(unsigned char *data, int size, int *len)
 {
-    struct v4l2cap_info *capture = &capture_info;
     int tmpLen;
 
     if(newframe_len <= 0)
@@ -330,7 +329,7 @@ int start_capture_task(char *dev)
     if(dev)
         capture_video_dev = dev;
     else
-        capture_video_dev = DEFAULT_CAPTURE_DEV;
+        capture_video_dev = (char *)DEFAULT_CAPTURE_DEV;
 
     ret = pthread_create(&tid, NULL, capture_thread, NULL);
     if(ret != 0)

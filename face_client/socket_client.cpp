@@ -7,13 +7,14 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include "socket_client.h"
+#include "lib_proto.h"
 #include "capture.h"
 #include "public.h"
 #include "ringbuffer.h"
 #include "config.h"
 
 char *g_server_ip = NULL;
-client_info_t g_client_info = {0};
+client_info_t g_client_info;
 static unsigned char tmp_databuf[PROTO_PACK_MAX_LEN];
 static unsigned char tmp_protobuf[PROTO_PACK_MAX_LEN];
 extern int g_send_video_flag;
@@ -56,7 +57,6 @@ int client_init(client_info_t *client, char *srv_ip, int srv_port)
 
 int client_send_data(client_info_t *client, unsigned char *data, int len)
 {
-    static unsigned int seq_num = 0;
     int total = 0;
     int ret;
 
@@ -65,9 +65,6 @@ int client_send_data(client_info_t *client, unsigned char *data, int len)
         printf("%s error: client not connect!\n", __FUNCTION__);
         return -1;
     }
-
-    /* add sequence */
-    data[PROTO_SEQ_OFFSET] = seq_num++;
 
     // lock
     pthread_mutex_lock(&client->send_mutex);
@@ -104,48 +101,6 @@ int client_recv_data(client_info_t *client)
 
     return ret;
 }
-
-int proto_makeup_packet(uint8_t seq, uint8_t cmd, int len, uint8_t *data, uint8_t *outbuf, int size, int *outlen)
-{
-    uint8_t *packBuf = outbuf;
-    int packLen = 0;
-
-    if((len!=0 && data==NULL) || outbuf==NULL || outlen==NULL)
-        return -1;
-
-    /* if outbuf is not enough */
-    if(PROTO_DATA_OFFSET +len +1 > size)
-    {
-        printf("ERROR: %s: outbuf size [%d:%d] is not enough !!!\n", __FUNCTION__, size, PROTO_DATA_OFFSET +len +1);
-        return -2;
-    }
-
-    packBuf[PROTO_HEAD_OFFSET] = PROTO_HEAD;
-    packLen += 1;
-
-    memcpy(packBuf +PROTO_VERIFY_OFFSET, PROTO_VERIFY, 4);
-    packLen += 4;
-
-    packBuf[PROTO_SEQ_OFFSET] = seq;
-    packLen += 1;
-
-    packBuf[PROTO_CMD_OFFSET] = cmd;
-    packLen += 1;
-
-    memcpy(packBuf +PROTO_LEN_OFFSET, &len, 4);
-    packLen += 4;
-
-    memcpy(packBuf +PROTO_DATA_OFFSET, data, len);
-    packLen += len;
-
-    packBuf[PROTO_DATA_OFFSET +len] = PROTO_TAIL;
-    packLen += 1;
-
-    *outlen = packLen;
-
-    return 0;
-}
-
 int proto_0x03_heartbeat(client_info_t *client)
 {
     uint8_t proto_buf[128];
@@ -156,7 +111,7 @@ int proto_0x03_heartbeat(client_info_t *client)
     time_now = (uint32_t)time(NULL);
     data_len += 4;
 
-    proto_makeup_packet(0, 0x03, data_len, (uint8_t *)&time_now, proto_buf, sizeof (proto_buf), &pack_len);
+    proto_makeup_packet(0x03, (uint8_t *)&time_now, data_len, proto_buf, sizeof (proto_buf), &pack_len);
 
     client_send_data(client, proto_buf, pack_len);
 
@@ -168,6 +123,8 @@ int client_0x03_heartbeat(client_info_t *client, uint8_t *data, int len, uint8_t
     uint32_t time;
     int offset = 0;
     int ret;
+
+    UNUSED_4(client,len,ack_data,size);
 
     memcpy(&ret, data +offset, 4);
     offset += 4;
@@ -189,6 +146,8 @@ int client_0x10_getframe(client_info_t *client, uint8_t *data, int len, uint8_t 
     int frame_len = 0;
     int offset = 0;
     int ret = 0;
+
+    UNUSED_3(client,data,len);
 
     /* request part */
     // NULL
@@ -225,6 +184,8 @@ int client_0x11_facedetect(client_info_t *client, uint8_t *data, int len, uint8_
     uint8_t count;
     int offset = 0;
 
+    UNUSED_5(client,len,ack_data,size,ack_len);
+
     count = data[0];
     offset += 1;
 
@@ -252,6 +213,8 @@ int client_0x12_facerecogn(client_info_t *client, uint8_t *data, int len, uint8_
     char face_name[32] = {0};
     int status;
     int offset = 0;
+
+    UNUSED_5(client,len,ack_data,size,ack_len);
 
     /* face id */
     memcpy(&face_id, data +offset, 4);
@@ -292,6 +255,8 @@ int client_0x20_switchcamera(client_info_t *client, uint8_t *data, int len, uint
 {
     unsigned char onoff = 0;
 
+    UNUSED_5(client,len,ack_data,size,ack_len);
+
     onoff = data[0];
     printf("%s: onoff=%d\n", __FUNCTION__, onoff);
 
@@ -317,157 +282,9 @@ int proto_0x21_sendframe(client_info_t *client, unsigned char format, void *fram
     memcpy(tmp_databuf +offset, frame, len);
     offset += len;
 
-    proto_makeup_packet(0, 0x21, offset, tmp_databuf, tmp_protobuf, sizeof (tmp_protobuf), &pack_len);
+    proto_makeup_packet(0x21, tmp_databuf, offset, tmp_protobuf, sizeof (tmp_protobuf), &pack_len);
 
     client_send_data(client, tmp_protobuf, pack_len);
-
-    return 0;
-}
-
-
-int proto_detect_pack(struct ringbuffer *ringbuf, proto_detect_info_t *detect, uint8_t *proto_data, int size, int *proto_len)
-{
-    unsigned char buf[256];
-    int len;
-    char veri_buf[] = PROTO_VERIFY;
-    int tmp_protoLen;
-    uint8_t byte;
-
-    if(ringbuf==NULL || proto_data==NULL || proto_len==NULL || size<PROTO_PACK_MIN_LEN)
-        return -1;
-
-    tmp_protoLen = *proto_len;
-
-    /* get and check protocol head */
-    if(!detect->head)
-    {
-        while(ringbuf_datalen(ringbuf) > 0)
-        {
-            ringbuf_read(ringbuf, &byte, 1);
-            if(byte == PROTO_HEAD)
-            {
-                proto_data[0] = byte;
-                tmp_protoLen = 1;
-                detect->head = 1;
-                //printf("********* detect head\n");
-                break;
-            }
-        }
-    }
-
-    /* get and check verify code */
-    if(detect->head && !detect->verify)
-    {
-        while(ringbuf_datalen(ringbuf) > 0)
-        {
-            ringbuf_read(ringbuf, &byte, 1);
-            if(byte == veri_buf[tmp_protoLen-1])
-            {
-                proto_data[tmp_protoLen] = byte;
-                tmp_protoLen ++;
-                if(tmp_protoLen == 1+strlen(PROTO_VERIFY))
-                {
-                    detect->verify = 1;
-                    //printf("********* detect verify\n");
-                    break;
-                }
-            }
-            else
-            {
-                if(byte == PROTO_HEAD)
-                {
-                    proto_data[0] = byte;
-                    tmp_protoLen = 1;
-                    detect->head = 1;
-                }
-                else
-                {
-                    tmp_protoLen = 0;
-                    detect->head = 0;
-                }
-            }
-        }
-    }
-
-    /* get other protocol data */
-    if(detect->head && detect->verify)
-    {
-        while(ringbuf_datalen(ringbuf) > 0)
-        {
-            if(tmp_protoLen < PROTO_DATA_OFFSET)	// read data_len
-            {
-                len = ringbuf_read(ringbuf, buf, sizeof(buf) < PROTO_DATA_OFFSET -tmp_protoLen ? \
-                                                    sizeof(buf) : PROTO_DATA_OFFSET -tmp_protoLen);
-                if(len > 0)
-                {
-                    memcpy(proto_data +tmp_protoLen, buf, len);
-                    tmp_protoLen += len;
-                }
-                if(tmp_protoLen >= PROTO_DATA_OFFSET)
-                {
-                    memcpy(&len, proto_data +PROTO_LEN_OFFSET, 4);
-                    detect->pack_len = PROTO_DATA_OFFSET +len +1;
-                    if(detect->pack_len > size)
-                    {
-                        printf("ERROR: %s: pack len[%d] > buf size[%d]\n", __FUNCTION__, size, detect->pack_len);
-                        memset(detect, 0, sizeof(proto_detect_info_t));
-                    }
-                }
-            }
-            else	// read data
-            {
-                len = ringbuf_read(ringbuf, buf, sizeof(buf) < detect->pack_len -tmp_protoLen ? \
-                                                    sizeof(buf) : detect->pack_len -tmp_protoLen);
-                if(len > 0)
-                {
-                    memcpy(proto_data +tmp_protoLen, buf, len);
-                    tmp_protoLen += len;
-                    if(tmp_protoLen == detect->pack_len)
-                    {
-                        if(proto_data[tmp_protoLen-1] != PROTO_TAIL)
-                        {
-                            printf("%s : packet data error, no detect tail!\n", __FUNCTION__);
-                            memset(detect, 0, sizeof(proto_detect_info_t));
-                            tmp_protoLen = 0;
-                            break;
-                        }
-                        *proto_len = tmp_protoLen;
-                        memset(detect, 0, sizeof(proto_detect_info_t));
-                        //printf("%s : get complete protocol packet, len: %d\n", __FUNCTION__, *proto_len);
-                        return 0;
-                    }
-                }
-            }
-        }
-    }
-
-    *proto_len = tmp_protoLen;
-
-    return -1;
-}
-
-int proto_analy_packet(uint8_t *pack, int packLen, uint8_t *seq, uint8_t *cmd, int *len, uint8_t **data)
-{
-
-    if(pack==NULL || seq==NULL || cmd==NULL || len==NULL || data==NULL)
-        return -1;
-
-    if(packLen < PROTO_PACK_MIN_LEN)
-        return -2;
-
-    *seq = pack[PROTO_SEQ_OFFSET];
-
-    *cmd = pack[PROTO_CMD_OFFSET];
-
-    memcpy(len, pack +PROTO_LEN_OFFSET, 4);
-
-    if(*len +PROTO_PACK_MIN_LEN != packLen)
-    {
-        return -1;
-    }
-
-    if(*len > 0)
-        *data = pack + PROTO_DATA_OFFSET;
 
     return 0;
 }
@@ -476,14 +293,14 @@ int client_proto_handle(client_info_t *client, unsigned char *pack, unsigned int
 {
     uint8_t *ack_buf = client->ack_buf;
     uint8_t *tmpBuf = client->tmp_buf;
-    uint8_t seq = 0, cmd = 0;
+    uint8_t cmd = 0;
     int data_len = 0;
     uint8_t *data = 0;
     int ack_len = 0;
     int tmpLen = 0;
     int ret;
 
-    ret = proto_analy_packet(pack, pack_len, &seq, &cmd, &data_len, &data);
+    ret = proto_analy_packet(pack, pack_len, &cmd, &data_len, &data);
     if(ret != 0)
         return -1;
 
@@ -519,7 +336,7 @@ int client_proto_handle(client_info_t *client, unsigned char *pack, unsigned int
     /* send ack data */
     if(ret==0 && ack_len>0)
     {
-        proto_makeup_packet(seq, cmd, ack_len, ack_buf, tmpBuf, PROTO_PACK_MAX_LEN, &tmpLen);
+        proto_makeup_packet(cmd, ack_buf, ack_len, tmpBuf, PROTO_PACK_MAX_LEN, &tmpLen);
         client_send_data(client, tmpBuf, tmpLen);
     }
 
@@ -532,6 +349,8 @@ void *client_task_thread(void *arg)
     time_t heartbeat_time = 0;
     time_t tmp_time;
     int ret;
+
+    UNUSED_1(arg);
 
 	// 初始化客户端，创建socket，设置相关属性
     ret = client_init(client, g_server_ip, DEFAULT_SERVER_PORT);
@@ -576,7 +395,7 @@ void *client_task_thread(void *arg)
             int det_ret;
 
             recv_ret = client_recv_data(client);
-            det_ret = proto_detect_pack(&client->recv_ringbuf, &client->detect_info, client->proto_buf, sizeof(client->proto_buf), &client->proto_len);
+            det_ret = proto_detect_pack(&client->recv_ringbuf, client->proto_buf, sizeof(client->proto_buf), &client->proto_len);
             if(det_ret == 0)
             {
                 client_proto_handle(client, client->proto_buf, client->proto_len);
@@ -604,7 +423,7 @@ int start_socket_client_task(char *svr_ip)
     if(svr_ip)
         g_server_ip = svr_ip;
     else
-        g_server_ip = DEFAULT_SERVER_IP;
+        g_server_ip = (char *)DEFAULT_SERVER_IP;
 
     ret = pthread_create(&tid, NULL, client_task_thread, NULL);
     if(ret != 0)
